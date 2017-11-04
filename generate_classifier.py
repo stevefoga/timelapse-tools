@@ -6,7 +6,7 @@ Purpose:
 Author:     Steve Foga
 Created:    02 Nov 2017
 
-Python version: 2.7.13
+Python version: 2.7.12
 
 Source: http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-
         with-scikit-learn/
@@ -37,7 +37,6 @@ def generate_classifier(group_a, group_b, class_out, img_ext='.jpg'):
     from sklearn import cross_validation
     from sklearn import svm
     from sklearn import grid_search
-    from sklearn.externals import joblib
     import pickle
 
     def calc_img_vector(img_path):

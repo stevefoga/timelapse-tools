@@ -6,7 +6,7 @@ Purpose: Call classify_images.py, and use those results to sort images
 Author:     Steve Foga
 Created:    02 Nov 2017
 
-Python version: 2.7.13
+Python version: 2.7.12
 """
 import os
 import sys

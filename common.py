@@ -6,7 +6,7 @@ Common tools used between Python modules.
 Author:     Steve Foga
 Created:    02 Nov 2017
 
-Python version: 2.7.13
+Python version: 2.7.12
 """
 
 

@@ -6,7 +6,7 @@ Purpose:    Use classifier made by generate_classifier.py to classify an image.
 Author:     Steve Foga
 Created:    02 Nov 2017
 
-Python version: 2.7.13
+Python version: 2.7.12
 """
 import os
 import sys
