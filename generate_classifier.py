@@ -18,7 +18,7 @@ day-and-night-an-image-classifier-with-scikit-learn/
 """
 
 
-def main(group_a, group_b, class_out, img_ext='.jpg', dryrun):
+def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
     """
 
     :param group_a: <str> path to 'good' images OR json files
