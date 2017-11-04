@@ -1,5 +1,5 @@
 # image-classifier
-=====
+
 ## Usage
 These tools can be used to train a model using two sets of images, and then sort validation/target images. 
 
