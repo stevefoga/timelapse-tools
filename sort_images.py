@@ -11,7 +11,10 @@ Python version: 2.7.12
 import os
 import sys
 import pickle
+import time
 from classify_images import classify
+
+t0 = time.time()
 
 
 def main(img_path, img_ext, model, good_path, bad_path, dryrun=False):
@@ -50,6 +53,11 @@ def main(img_path, img_ext, model, good_path, bad_path, dryrun=False):
         if dryrun:
             print("--dryrun option used, no files moved.")
 
+    t1 = time.time()
+    m, s = divmod(t1 - t0, 60)
+    h, m = divmod(m, 60)
+    print("Total runtime: {0}h, {1}m, {2}s.".format(h, round(m, 3), round(s, 3)))
+    
 
 if __name__ == "__main__":
     import argparse
