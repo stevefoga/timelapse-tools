@@ -17,7 +17,6 @@ class Common():
         Open image file.
 
         :param img_path: <str>
-
         :return: <PIL.Image>
         """
         import sys
@@ -40,7 +39,6 @@ class Common():
 
         :param image: <PIL.Image> image to process.
         :param blocks: <int> number of block to subdivide the RGB space (default=4).
-
         :return: <list> feature vector if successful. None if the image is not RGB.
         """
         import sys
