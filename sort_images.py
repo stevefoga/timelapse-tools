@@ -57,7 +57,7 @@ def main(img_path, img_ext, model, good_path, bad_path, dryrun=False):
     m, s = divmod(t1 - t0, 60)
     h, m = divmod(m, 60)
     print("Total runtime: {0}h, {1}m, {2}s.".format(h, round(m, 3), round(s, 3)))
-    
+
 
 if __name__ == "__main__":
     import argparse
