@@ -12,7 +12,7 @@ Additionally, the following utilities are included to facilitate time lapse vide
 2) **Pull specific time(s) of day**: Run [daily_subset_and_rename.py](utils/daily_subset_and_rename.py) to grab images between specific hour(s) of day, move to new folder, and optionally call [batch_rename.py](utils/batch_rename.py) to re-number the files after they are moved.
 
 ## Examples
-I'm working on compiling an example of how to use these tools for filtering unlit images captured by a time-lapse camera on [my blog](https://stevefoga.wordpress.com/).
+I have written an example of how to use these tools for filtering unlit images captured by a time-lapse camera on [my blog](https://stevefoga.wordpress.com/).
 
 ## Required Non-Standard Libraries
 - numpy
@@ -20,4 +20,4 @@ I'm working on compiling an example of how to use these tools for filtering unli
 - PIL
 
 ## Resources
-I credit the majority of this work to a blog post on a now defunct site: https://web.archive.org/web/20160408173700/http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-with-scikit-learn/. 
+I credit the majority of this work to this blog post: http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-with-scikit-learn/
