@@ -18,7 +18,7 @@ I have written an example of how to use these tools for filtering unlit images c
 ## Required Non-Standard Libraries
 - numpy
 - sklearn
-- PIL
+- pillow (PIL)
 
 ## Resources
 I credit the majority of this work to this blog post: http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-with-scikit-learn/
