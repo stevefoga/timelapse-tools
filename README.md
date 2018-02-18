@@ -1,3 +1,4 @@
+[![Build status](https://travis-ci.org/stevefoga/image-classifier.svg?master)](https://travis-ci.org/stevefoga)
 # image-classifier
 
 ## Usage
