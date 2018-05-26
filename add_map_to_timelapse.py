@@ -20,6 +20,7 @@ import os
 import glob
 from PIL import Image
 import matplotlib.pyplot as plt
+from lib.common import Common
 
 
 def progress(count, total, suffix=''):
@@ -110,7 +111,7 @@ for i in img_in:
     it += 1
     progress(it, total, "coords extracted from exif")
 
-    io = Image.open(i)
+    io = Common.open_image(i)
     info = io._getexif()
 
     #print(info)
@@ -223,8 +224,8 @@ for img_path, value in img_coords.items():
     plt.close('all')
 
     # open target image
-    base_img = Image.open(img_path)
-    map_img = Image.open(png_out)
+    base_img = Common.open_image(img_path)
+    map_img = Common.open_image(png_out)
 
     # overlay PNG on target image
     base_img_rgba = base_img.convert("RGBA")
