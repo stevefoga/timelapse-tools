@@ -2,7 +2,14 @@
 add_map_to_timelapse.py
 
 Purpose: for all geotagged images, derive a common map, track progress of each image, and overlay map on a copy of
-         the images.
+         the images. Currently only works with GoPro geotags; support for other imagery could be created by modifying
+         the get_coords() function, and the index key used to invoke it.
+
+TODO:
+    1) add argparse
+    2) add custom graphics options for #1
+    3) create option to call Open Street Map API for basemap
+    4) create standalone executable (see: cpython, PyInstaller)
 
 Author: Steve Foga
 Created: 12 May 2018
