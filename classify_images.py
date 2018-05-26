@@ -12,7 +12,7 @@ import os
 import sys
 import glob
 import numpy as np
-from common import Common
+from lib.common import Common
 
 
 def classify(img_in, img_ext, model):

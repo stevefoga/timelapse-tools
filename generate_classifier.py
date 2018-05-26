@@ -34,7 +34,7 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
     import glob
     import json
     import time
-    from common import Common
+    from lib.common import Common
     from sklearn import cross_validation
     from sklearn import svm
     from sklearn import grid_search
