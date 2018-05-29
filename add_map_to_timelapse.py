@@ -1,4 +1,4 @@
-'''
+"""
 add_map_to_timelapse.py
 
 Purpose: for all geotagged images, derive a common map, track progress of each image, and overlay map on a copy of
@@ -6,20 +6,17 @@ Purpose: for all geotagged images, derive a common map, track progress of each i
          the get_coords() function, and the index key used to invoke it.
 
 TODO:
-    1) add argparse
-    2) add custom graphics options for #1
-    3) add option to control map location
-    4) create option to call Open Street Map API for basemap
-    5) create standalone executable (see: cpython, PyInstaller)
+    1) add option to control map location
+    2) create option to call Open Street Map API for basemap
+    3) create standalone executable (see: cpython, PyInstaller)
 
 Author: Steve Foga
 Created: 12 May 2018
 Python version: 2.7.12
-'''
+"""
 import sys
 import os
 import glob
-from PIL import Image
 import matplotlib.pyplot as plt
 from lib.common import Common
 
@@ -74,20 +71,26 @@ def get_coords(exif_data):
     if exif_data[1] == 'S':
         lat[0] = lat[0] * -1
 
-    long = [exif_data[4][i][0] for i in range(len(exif_data[4]))]
+    lng = [exif_data[4][i][0] for i in range(len(exif_data[4]))]
     if exif_data[3] == 'W':
-        long[0] = long[0] * -1
+        lng[0] = lng[0] * -1
 
     # convert degrees + decimal minutes to decimal degrees
     lat_dd = get_dd(lat)
-    long_dd = get_dd(long)
+    long_dd = get_dd(lng)
 
     return [lat_dd, long_dd]
 
 
-def main():
+def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, map_line_width, map_alpha, map_point_size,
+         map_point_color, bc_point_size, bc_point_color):
+    if not os.path.isdir(src):
+        sys.exit("src must be a directory")
+
+    img_in = glob.glob(src + "*.JPG")
+
     if not img_in:
-        sys.exit("could not find JPG images in {0}".format(dir_in))
+        sys.exit("could not find JPG images in {0}".format(src))
 
     img_coords = {}
 
@@ -112,15 +115,15 @@ def main():
     img_y = io.size[1]
     img_x = io.size[0]
 
-    img_y_scaled = img_y * (map_pct_size * 0.01)
-    img_x_scaled = img_x * (map_pct_size * 0.01)
+    img_y_scaled = img_y * (map_size * 0.01)
+    img_x_scaled = img_x * (map_size * 0.01)
 
     map_y_dim = img_y_scaled / map_dpi
     map_x_dim = img_x_scaled / map_dpi
 
     # map position, relative to the base image
     # /1.5 to offset from the lower left edge
-    # TODO: fix this so plot offset works in any margin
+    # TODO: fix this so plot offset works in any margin (only works in LR now)
     map_y_pos = int(round((map_y * img_y) / 1.6))
     map_x_pos = int(round((map_x * img_x) / 1.6))
 
@@ -154,17 +157,17 @@ def main():
         # open image as plot
         img = plt.imread(img_path)
         img_dims = img.shape
-        y_map = img_dims[0] * (map_pct_size * 0.01)
-        x_map = img_dims[1] * (map_pct_size * 0.01)
+        y_map = img_dims[0] * (map_size * 0.01)
+        x_map = img_dims[1] * (map_size * 0.01)
         #imgplot = plt.imshow(img)
         '''
         # configure map plot dimensions
         plt.rcParams["figure.figsize"] = (map_x_dim, map_y_dim)
-        #fig, ax = plt.figure(figsize=(map_x_dim, map_y_dim), dpi=map_dpi)
 
+        # initiate plots
         fig, ax = plt.subplots()
 
-        #fig.patch.set_alpha(alpha_level)
+        # fig.patch.set_alpha(alpha_level)
         fig.patch.set_alpha(0.0)
 
         # disable map plot frame
@@ -172,42 +175,32 @@ def main():
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         ax.spines['left'].set_visible(False)
-        #fig.tick_params(top='off', bottom='off', left='off', right='off', labelleft='off', labelbottom='off')
 
-        ax.plot(longs, lats, linewidth=line_width, zorder=1)
+        ax.plot(longs, lats, linewidth=map_line_width, zorder=1)
         if not breadcrumbs:
             ax.plot(value[1], value[0], 'ro', zorder=2)
 
         else:
             if prev_pts:
-                ax.scatter([lc[1] for lc in prev_pts], [lc[0] for lc in prev_pts], c='gray', s=100, linewidth=0, zorder=2)
-                ax.scatter(value[1], value[0], c='red', s=250, zorder=3)
+                ax.scatter([lc[1] for lc in prev_pts], [lc[0] for lc in prev_pts], c=bc_point_color, s=bc_point_size,
+                           linewidth=0, zorder=2)
+                ax.scatter(value[1], value[0], c=map_point_color, s=map_point_size, zorder=3)
 
             else:
-                ax.scatter(value[1], value[0], c='red', s=250, zorder=2)
+                ax.scatter(value[1], value[0], c=map_point_color, s=map_point_size, zorder=2)
 
             prev_pts.append(value)
 
         # set axes to specific alpha
-        ax.patch.set_alpha(alpha_level)
+        ax.patch.set_alpha(map_alpha)
 
         # exclude axes
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
-        #ax.xticks([])
-        #ax.yticks([])
-
 
         # export as transparent
         png_out = os.path.splitext(img_path)[0] + "_transparent.png"
-        # set background color, if applicable
-        #if bg_color:
-        #    #ax.patch.set_facecolor(bg_color)
-        #    fig.patch.set_alpha(0.5)
-        #    fig.savefig(png_out)
-        #else:
 
-        #fig.savefig(png_out, transparent=True)
         fig.savefig(png_out)
         plt.close('all')
 
@@ -219,34 +212,85 @@ def main():
         base_img_rgba = base_img.convert("RGBA")
         map_img_rgba = map_img.convert("RGBA")
         base_img_rgba.paste(map_img_rgba, (map_x_pos, map_y_pos), map_img_rgba)
-        #base_map = Imagbe.alpha_composite(base_img_rgba, map_img)
+        # base_map = Imagbe.alpha_composite(base_img_rgba, map_img)
         # base_map = Image.blend(base_img, map_img, alpha=0.8)  # "images do not match"
 
         # save target image to new location
         img_out = os.path.splitext(img_path)[0] + "_map.JPG"
-        base_img_rgba.save(img_out)
+        if not dryrun:
+            base_img_rgba.save(img_out)
 
         # clean up old transparency
         if not keep_map:
             os.remove(png_out)
 
+
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description='Add map to geotagged GoPro images.')
+    # functions to define specific data type ranges
+    def restricted_float(x):
+        x = float(x)
+        if x < 0.0 or x > 1.0:
+            raise argparse.ArgumentTypeError("{0} not in range [0.0, 1.0]".format(x,))
+        return x
 
-    # TODO: sort between "required", "optional features", and "optional graphics" (or something)
-    parser.add_argument("src", description="Directory containing images")
+    def restricted_int(x):
+        if x is int:
+            if x < 0 or x > 100:
+                raise argparse.ArgumentTypeError("{0} not in range [0, 100]".format(x))
+            return x
+        else:
+            raise argparse.ArgumentTypeError("{0} must be type int".format(x))
 
-    parser.add_argument("--breadcrumbs", action="store_true",
-                        description="Insert gray dots for previously visited location, relative to time series",
-                        required=False)
+    parser = argparse.ArgumentParser(description='Add map to geotagged GoPro images.', add_help=False)
 
-    parser.add_argument("--map-size", description="Percent of image space of which the map will occupy (default=20)",
-                        default=20, range=(0,100), required=False)
-    parser.add_argument("--map-dpi", description="DPI of map (default=50)", default=50, required=False)
-    parser.add_argument("--map-x")
-    parser.add_argument("--map-y")
+    # argument categories
+    req = parser.add_argument_group("Required arguments")
+    opt_flag = parser.add_argument_group("Optional flags")
+    opt_map = parser.add_argument_group("Optional map arguments")
+
+    # required args
+    req.add_argument("src", help="Directory containing images")
+
+    # optional flags
+    opt_flag.add_argument("-h", "--help", action="help", help="Show this help message and exit")
+    opt_flag.add_argument("--breadcrumbs", action="store_true",
+                          help="Insert gray dots for previously visited location, relative to time series",
+                          required=False)
+    opt_flag.add_argument("--keep-map", action="store_true", help="Save copy of map as separate image '*_map.JPG'",
+                          required=False)
+    opt_flag.add_argument("--dryrun", action="store_true",
+                          help="Run script, but do not alter files (cleans up all intermediate files",
+                          default=False)
+
+    # optional map args
+    opt_map.add_argument("--map-size",
+                         help="Percent of image space of which the map will occupy (range=(0, 100), default=20)",
+                         default=20, type=restricted_int, required=False)
+    opt_map.add_argument("--map-dpi", help="DPI of map (default=50)", default=50, type=int, required=False)
+    opt_map.add_argument("--map-x", help="X location of map relative to target image (range=(0.0, 1.0), default=1.0)",
+                         default=1.0, type=restricted_float, required=False)
+    opt_map.add_argument("--map-y", help="Y location of map relative to target image (range=(0.0, 1.0), default=1.0)",
+                         default=1.0, type=restricted_float, required=False)
+    opt_map.add_argument("--map-line-width", help="Width of map line (default=3)", default=3, type=float,
+                         required=False)
+    opt_map.add_argument("--map-alpha", help="Level of transparency of map background (range=(0.0,1.0), default=0.25)",
+                         type=restricted_float, default=0.25, required=False)
+    opt_map.add_argument("--map-point-size", help="Size of current location point (default=250)", type=int, default=250,
+                         required=False)
+    opt_map.add_argument("--map-point-color", help="Color of current location point (default=gray)", default='red',
+                         required=False)
+    opt_map.add_argument("--bc-point-size", help="Size of breadcrumb point(s) (default=100)", type=int, default=100,
+                         required=False)
+    opt_map.add_argument("--bc-point-color", help="Color of breadcrumb point(s) (default=gray)", default='gray',
+                         required=False)
+
+    arguments = parser.parse_args()
+
+    main(**vars(arguments))
+
+    '''
     # TODO: finish me!
     dir_in = "/home/chrx/Projects/gopro_timelapse/"
     img_in = sorted(glob.glob(dir_in + "*.JPG"))
@@ -259,4 +303,4 @@ if __name__ == "__main__":
     alpha_level = 0.25
     # map_loc = "SE"  # (cardinal directions, default="SE") location of map on image
     keep_map = True
-    bg_color = 'gray'
+    '''
