@@ -131,13 +131,6 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     lats = [lc[0] for lc in img_coords.values()]
     longs = [lc[1] for lc in img_coords.values()]
 
-    '''
-    min_x = min(longs)
-    max_x = max(longs)
-    min_y = min(lats)
-    max_y = max(lats)
-    '''
-
     # make plot
     plt.plot(lats, longs)
 
@@ -167,7 +160,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         # initiate plots
         fig, ax = plt.subplots()
 
-        # fig.patch.set_alpha(alpha_level)
+        # set farthest background layer as transparent
         fig.patch.set_alpha(0.0)
 
         # disable map plot frame
@@ -212,8 +205,6 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         base_img_rgba = base_img.convert("RGBA")
         map_img_rgba = map_img.convert("RGBA")
         base_img_rgba.paste(map_img_rgba, (map_x_pos, map_y_pos), map_img_rgba)
-        # base_map = Imagbe.alpha_composite(base_img_rgba, map_img)
-        # base_map = Image.blend(base_img, map_img, alpha=0.8)  # "images do not match"
 
         # save target image to new location
         img_out = os.path.splitext(img_path)[0] + "_map.JPG"
@@ -289,18 +280,3 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
 
     main(**vars(arguments))
-
-    '''
-    # TODO: finish me!
-    dir_in = "/home/chrx/Projects/gopro_timelapse/"
-    img_in = sorted(glob.glob(dir_in + "*.JPG"))
-    breadcrumbs = True
-    map_pct_size = 20  # (0-100, default=20) percent of image map occupies
-    map_dpi = 50
-    map_x = 1  # 0-1, where 0 is upper-left, 1 is lower-right
-    map_y = 1
-    line_width = 3
-    alpha_level = 0.25
-    # map_loc = "SE"  # (cardinal directions, default="SE") location of map on image
-    keep_map = True
-    '''
