@@ -16,6 +16,15 @@ Source: http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-
 https://web.archive.org/web/20160408173700/http://www.ippatsuman.com/2014/08/13/
 day-and-night-an-image-classifier-with-scikit-learn/
 """
+import os
+import glob
+import json
+import time
+from lib.common import Common
+from sklearn import cross_validation
+from sklearn import svm
+from sklearn import grid_search
+import pickle
 
 
 def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
@@ -28,18 +37,6 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
     :param dryrun: <bool> run code but do not save classifier
     :return:
     """
-
-    import sys
-    import os
-    import glob
-    import json
-    import time
-    from lib.common import Common
-    from sklearn import cross_validation
-    from sklearn import svm
-    from sklearn import grid_search
-    import pickle
-
     def calc_img_vector(img_path):
         """
 
