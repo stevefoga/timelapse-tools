@@ -9,7 +9,6 @@ Created:    02 Nov 2017
 Python version: 2.7.12
 """
 import os
-import sys
 import glob
 import numpy as np
 from lib.common import Common
@@ -29,8 +28,7 @@ def classify(img_in, img_ext, model):
     img_path = os.path.join(img_in, '*' + img_ext)
     img = glob.glob(img_path)
     if not img:
-        print("Could not find images for string {0}".format(img_path))
-        sys.exit(-1)
+        raise Exception("Could not find images for string {0}".format(img_path))
 
     # get the best estimate from the classifier
     classifier = model.best_estimator_
@@ -50,8 +48,7 @@ def classify(img_in, img_ext, model):
         out = classifier.predict(np_vec)
 
         if type(out) is not np.ndarray:
-            print("No result returned for image {0}".format(i))
-            sys.exit(-1)
+            raise Exception("No result returned for image {0}".format(i))
         else:
             output.append(out[0])
 
