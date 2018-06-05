@@ -90,8 +90,8 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
             return files
 
         else:
-            sys.exit("Could not find files in {0} using wildcard *{1}.".
-                     format(f_path, f_pattern))
+            raise Exception("Could not find files in {0} using wildcard *{1}.".
+                            format(f_path, f_pattern))
 
     def read_vector_file(vec_path):
         """
@@ -99,14 +99,10 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
         :param vec_path:
         :return:
         """
-        try:
-            with open(vec_path) as f:
-                output = json.load(f)
+        with open(vec_path) as f:
+            output = json.load(f)
 
-            print("Vector file {0} successfully read.".format(vec_path))
-
-        except IOError:
-            sys.exit("{0} could not be opened.".format(vec_path))
+        print("Vector file {0} successfully read.".format(vec_path))
 
         return output
 
@@ -119,14 +115,10 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
         """
         output = os.path.join(vec_path, 'image_vector_{0}.json'.format(time.strftime("%Y%m%d-%H%M%S")))
 
-        try:
-            with open(output, 'w') as f:
-                json.dump(data, f)
+        with open(output, 'w') as f:
+            json.dump(data, f)
 
-            print("Vector data written to {0}".format(output))
-
-        except IOError:
-            sys.exit("Vector file could not be created.")
+        print("Vector data written to {0}".format(output))
 
     # if the inputs are not JSON files, they are assumed to be images
     # generate vectors for all images
@@ -149,8 +141,7 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
         vector_b = read_vector_file(group_b)
 
     else:
-        print("Incorrect extensions supplied. ext_a={0} | ext_b={1}".format(ext_a, ext_b))
-        sys.exit(-1)
+        raise Exception("Incorrect extensions supplied. ext_a={0} | ext_b={1}".format(ext_a, ext_b))
 
     # train the classifier for the image sets
     train_classifier(vector_a, vector_b, class_out)
