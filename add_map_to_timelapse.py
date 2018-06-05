@@ -85,12 +85,12 @@ def get_coords(exif_data):
 def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, map_line_width, map_alpha, map_point_size,
          map_point_color, bc_point_size, bc_point_color):
     if not os.path.isdir(src):
-        sys.exit("src must be a directory")
+        raise Exception("src must be a directory")
 
     img_in = glob.glob(src + "*.JPG")
 
     if not img_in:
-        sys.exit("could not find JPG images in {0}".format(src))
+        raise Exception("could not find JPG images in {0}".format(src))
 
     img_coords = {}
 
