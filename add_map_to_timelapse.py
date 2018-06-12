@@ -108,7 +108,11 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         #print(info)
 
         # write [lat, long] to dictonary key 'image.JPG'
-        img_coords[i] = get_coords(info[34853])
+        try:
+            img_coords[i] = get_coords(info[34853])
+        except KeyError:
+            raise Warning("Skipping: Could not find coordinates for image {0}".format(i))
+            continue
 
     # calculate output map size
     # grab size of last image opened (assuming all images are same size; to be used for scaling map later)
@@ -252,7 +256,7 @@ if __name__ == "__main__":
     opt_flag.add_argument("--keep-map", action="store_true", help="Save copy of map as separate image '*_map.JPG'",
                           required=False)
     opt_flag.add_argument("--dryrun", action="store_true",
-                          help="Run script, but do not alter files (cleans up all intermediate files",
+                          help="Run script, but do not alter files (cleans up all intermediate files)",
                           default=False)
 
     # optional map args
