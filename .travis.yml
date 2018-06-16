@@ -28,8 +28,7 @@ install:
   # The following adopts approaches suggested in the above links.
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install scikit-learn
-  - conda install pillow
+  - conda install pytest
 
 script: 
 
