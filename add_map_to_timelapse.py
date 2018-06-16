@@ -93,6 +93,15 @@ def calc_map_dims(x_size, y_size, mp_size, mp_dpi):
     :param mp_dpi: <int> Map density, as dots per inch
     :return: <list> [x_dimension, y_dimension]
     """
+    if x_size <= 0:
+        raise Exception("x_size must be greater than 0; value supplied: {0}".format(x_size))
+    if y_size <= 0:
+        raise Exception("y_size must be greater than 0; value supplied: {0}".format(y_size))
+    if mp_size <= 0:
+        raise Exception("mp_size must be greater than 0; value supplied: {0}".format(mp_size))
+    if mp_dpi <= 0:
+        raise Exception("mp_dpi must be greater than 0; value supplied: {0}".format(mp_dpi))
+
     img_y_scaled = y_size * (mp_size * 0.01)
     img_x_scaled = x_size * (mp_size * 0.01)
 
