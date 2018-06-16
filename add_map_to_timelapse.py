@@ -17,6 +17,7 @@ Python version: 2.7.12
 import sys
 import os
 import glob
+import warnings
 import matplotlib.pyplot as plt
 from lib.common import Common
 
@@ -111,7 +112,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         try:
             img_coords[i] = get_coords(info[34853])
         except KeyError:
-            raise Warning("Skipping: Could not find coordinates for image {0}".format(i))
+            warnings.warn("Skipping: Could not find coordinates for image {0}".format(i))
             continue
 
     # calculate output map size
