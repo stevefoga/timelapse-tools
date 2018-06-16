@@ -3,7 +3,34 @@ language: python
 python:
 
   - "2.7"
+  - "3.6"
+
+before_install:
+
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+
+install:
+
+  # Issues have been encountered with installing numpy and scipy on 
+  # Travis CI e.g. https://gist.github.com/dan-blanchard/7045057.
+  # Miniconda is recommended as the way to install these. See also:
+  # http://conda.pydata.org/docs/travis.html
+  # The following adopts approaches suggested in the above links.
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - source activate test-environment
+  - conda install scikit-learn
+  - conda install pillow
 
 script: 
 
-  - python classify_images.py
+  - python test_add_map_to_timelapse.py
