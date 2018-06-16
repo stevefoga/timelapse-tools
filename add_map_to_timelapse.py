@@ -83,6 +83,39 @@ def get_coords(exif_data):
     return [lat_dd, long_dd]
 
 
+def calc_map_dims(x_size, y_size, mp_size, mp_dpi):
+    """
+    Calculate output map size.
+
+    :param x_size: <int or float> Image x dimension
+    :param y_size: <int or float> Image y dimension
+    :param mp_size: <int> Percent of image space of which the map will occupy
+    :param mp_dpi: <int> Map density, as dots per inch
+    :return: <list> [x_dimension, y_dimension]
+    """
+    img_y_scaled = y_size * (mp_size * 0.01)
+    img_x_scaled = x_size * (mp_size * 0.01)
+
+    map_y_dim = img_y_scaled / mp_dpi
+    map_x_dim = img_x_scaled / mp_dpi
+
+    return map_x_dim, map_y_dim
+
+
+def scale_map_to_img(map_dim, img_dim):
+    """
+    Set map position, relative to the base image
+    # TODO: fix this so plot offset works in any margin (only works in LR now)
+    :param map_dim: <int or float>
+    :param img_dim: <int or float>
+    :return: <int or float>
+    """
+    # using /1.6 to offset from the lower left edge
+    map_pos = int(round((map_dim * img_dim) / 1.6))
+
+    return map_pos
+
+
 def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, map_line_width, map_alpha, map_point_size,
          map_point_color, bc_point_size, bc_point_color):
     if not os.path.isdir(src):
@@ -115,22 +148,15 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
             warnings.warn("Skipping: Could not find coordinates for image {0}".format(i))
             continue
 
-    # calculate output map size
     # grab size of last image opened (assuming all images are same size; to be used for scaling map later)
-    img_y = io.size[1]
-    img_x = io.size[0]
+    img_y = img_in.size[1]
+    img_x = img_in.size[0]
 
-    img_y_scaled = img_y * (map_size * 0.01)
-    img_x_scaled = img_x * (map_size * 0.01)
+    map_x_dim, map_y_dim = calc_map_dims(img_x, img_y, map_size, map_dpi)
 
-    map_y_dim = img_y_scaled / map_dpi
-    map_x_dim = img_x_scaled / map_dpi
-
-    # map position, relative to the base image
-    # /1.5 to offset from the lower left edge
-    # TODO: fix this so plot offset works in any margin (only works in LR now)
-    map_y_pos = int(round((map_y * img_y) / 1.6))
-    map_x_pos = int(round((map_x * img_x) / 1.6))
+    # set map within target image
+    map_y_pos = scale_map_to_img(map_y, img_y)
+    map_x_pos = scale_map_to_img(map_x, img_x)
 
     # determine bounding box of all images
     lats = [lc[0] for lc in img_coords.values()]
@@ -179,7 +205,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
             ax.plot(value[1], value[0], 'ro', zorder=2)
 
         else:
-            if prev_pts:
+            if prev_pts:  # make breadcrumbs on plot
                 ax.scatter([lc[1] for lc in prev_pts], [lc[0] for lc in prev_pts], c=bc_point_color, s=bc_point_size,
                            linewidth=0, zorder=2)
                 ax.scatter(value[1], value[0], c=map_point_color, s=map_point_size, zorder=3)
