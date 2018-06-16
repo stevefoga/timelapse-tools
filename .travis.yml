@@ -33,4 +33,4 @@ install:
 
 script: 
 
-  - python ./tests/test_add_map_to_timelapse.py
+  - python -m pytest ./tests/test_add_map_to_timelapse.py
