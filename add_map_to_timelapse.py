@@ -20,6 +20,7 @@ import glob
 import warnings
 import matplotlib.pyplot as plt
 from PIL import Image
+from collections import OrderedDict
 from lib.common import Common
 
 
@@ -136,7 +137,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     if not img_in:
         raise Exception("could not find JPG images in {0}".format(src))
 
-    img_coords = {}
+    img_coords = OrderedDict()
 
     it = 0
     total = len(img_in)
@@ -173,7 +174,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     longs = [lc[1] for lc in img_coords.values()]
 
     # make plot
-    plt.plot(lats, longs)
+    plt.plot(longs, lats)
 
     # make plot for each image
     if breadcrumbs:
