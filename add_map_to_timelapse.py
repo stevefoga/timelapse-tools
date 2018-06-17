@@ -130,7 +130,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     if not os.path.isdir(src):
         raise Exception("src must be a directory")
 
-    img_in = glob.glob(src + "*.JPG")
+    img_in = glob.glob(os.path.join(src, "*.JPG"))
 
     if not img_in:
         raise Exception("could not find JPG images in {0}".format(src))
