@@ -158,8 +158,8 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
             continue
 
     # grab size of last image opened (assuming all images are same size; to be used for scaling map later)
-    img_y = img_in.size[1]
-    img_x = img_in.size[0]
+    img_y = io.size[1]
+    img_x = io.size[0]
 
     map_x_dim, map_y_dim = calc_map_dims(img_x, img_y, map_size, map_dpi)
 
