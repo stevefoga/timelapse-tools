@@ -19,6 +19,7 @@ import os
 import glob
 import warnings
 import matplotlib.pyplot as plt
+from PIL import Image
 from lib.common import Common
 
 
@@ -249,10 +250,13 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         # save target image to new location
         img_out = os.path.splitext(img_path)[0] + "_map.JPG"
         if not dryrun:
-            # remove alpha component (cannot save as JPG otherwise)
-            base_img_rgba.convert("RGB")
+            # convert RGBA to RGB w/ mask (otherwise JPG format will not work)
+            # solution found at https://stackoverflow.com/a/9459208
+            base_img_jpg_out = Image.new("RGB", base_img_rgba.size, (255, 255, 255))
+            base_img_jpg_out.paste(base_img_rgba, mask=base_img_rgba.split()[3])
+
             # write image to JPG file
-            base_img_rgba.save(img_out)
+            base_img_jpg_out.save(img_out)
 
         # clean up old transparency
         if not keep_map:
