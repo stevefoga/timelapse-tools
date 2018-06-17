@@ -30,6 +30,7 @@ install:
   - source activate test-environment
   - conda install pytest
   - conda install matplotlib
+  - conda install PIL
 
 script: 
 
