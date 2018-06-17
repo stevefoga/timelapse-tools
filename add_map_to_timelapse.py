@@ -249,6 +249,9 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         # save target image to new location
         img_out = os.path.splitext(img_path)[0] + "_map.JPG"
         if not dryrun:
+            # remove alpha component (cannot save as JPG otherwise)
+            base_img_rgba.convert("RGB")
+            # write image to JPG file
             base_img_rgba.save(img_out)
 
         # clean up old transparency
