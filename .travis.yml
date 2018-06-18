@@ -1,23 +1,15 @@
 language: python
 
 python:
-
-  - "2.7"
-  - "3.6"
+  - 2.7
+  - 3.6
 
 before_install:
-
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
+  - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  # Install in batch mode
+  - ./miniconda.sh -b  -p $HOME/miniconda
+  - export PATH=$HOME/miniconda/bin:$PATH
 
 install:
 
@@ -26,12 +18,10 @@ install:
   # Miniconda is recommended as the way to install these. See also:
   # http://conda.pydata.org/docs/travis.html
   # The following adopts approaches suggested in the above links.
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pytest matplotlib PIL
   - source activate test-environment
-  - conda install pytest
-  - conda install matplotlib
-  - conda install PIL
+  # confirm version
+  - python --version
 
-script: 
-
+script:
   - python -m pytest ./tests/test_add_map_to_timelapse.py
