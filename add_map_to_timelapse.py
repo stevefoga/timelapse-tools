@@ -213,7 +213,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
 
         ax.plot(longs, lats, linewidth=map_line_width, zorder=1)
         if not breadcrumbs:
-            ax.plot(value[1], value[0], 'ro', zorder=2, c=map_point_color, s=map_point_size)
+            ax.plot(value[1], value[0], marker='o', zorder=2, color=map_point_color, markersize=map_point_size)
 
         else:
             if prev_pts:  # make breadcrumbs on plot
