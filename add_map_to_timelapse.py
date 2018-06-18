@@ -219,10 +219,10 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
             if prev_pts:  # make breadcrumbs on plot
                 ax.scatter([lc[1] for lc in prev_pts], [lc[0] for lc in prev_pts], c=bc_point_color, s=bc_point_size,
                            linewidth=0, zorder=2)
-                ax.scatter(value[1], value[0], c=map_point_color, s=map_point_size, zorder=3)
+                ax.plot(value[1], value[0], marker='o', color=map_point_color, markersize=map_point_size, zorder=3)
 
             else:
-                ax.scatter(value[1], value[0], c=map_point_color, s=map_point_size, zorder=2)
+                ax.plot(value[1], value[0], marker='o', color=map_point_color, markersize=map_point_size, zorder=2)
 
             prev_pts.append(value)
 
@@ -316,11 +316,11 @@ if __name__ == "__main__":
                          required=False)
     opt_map.add_argument("--map-alpha", help="Level of transparency of map background (range=(0.0,1.0), default=0.25)",
                          type=restricted_float, default=0.25, required=False)
-    opt_map.add_argument("--map-point-size", help="Size of current location point (default=250)", type=int, default=250,
+    opt_map.add_argument("--map-point-size", help="Size of current location point (default=25)", type=int, default=25,
                          required=False)
     opt_map.add_argument("--map-point-color", help="Color of current location point (default=gray)", default='red',
                          required=False)
-    opt_map.add_argument("--bc-point-size", help="Size of breadcrumb point(s) (default=100)", type=int, default=100,
+    opt_map.add_argument("--bc-point-size", help="Size of breadcrumb point(s) (default=10)", type=int, default=10,
                          required=False)
     opt_map.add_argument("--bc-point-color", help="Color of breadcrumb point(s) (default=gray)", default='gray',
                          required=False)
