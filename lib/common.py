@@ -6,7 +6,7 @@ Common tools used between Python modules.
 Author:     Steve Foga
 Created:    02 Nov 2017
 
-Python version: 2.7.12
+Python version: 3.7.3
 """
 import sys
 import PIL.Image
@@ -36,11 +36,13 @@ class ImageIO():
         self.image_path = image_path
         self.image_open = PIL.Image.open(self.image_path)
         self.image_exif = self.image_open._getexif()
+        self.rgba = None
 
     def get_size(self):
-        return self.image_open.size()
+        return self.image_open.size
 
     def overlay(self, image2, map_x_pos, max_y_pos):
+        # TODO: use self.rgba() variable, and make this fucntion update self()
         base_img_rgba = self.image_open.convert("RGBA")
         map_img_rgba = image2.image_open.convert("RGBA")
         base_img_rgba.paste(map_img_rgba, (map_x_pos, max_y_pos), map_img_rgba)
@@ -48,11 +50,10 @@ class ImageIO():
         return base_img_rgba
 
     def rgba_to_rgb_mask(self):
-        base_img_jpg_out = PIL.IMage.new("RGB", self.image_open.size, (255, 255, 255))
+        base_img_jpg_out = PIL.Image.new("RGB", self.image_open.size, (255, 255, 255))
         base_img_jpg_out.paste(self.image_open, mask=self.image_open.split()[3])
 
         return base_img_jpg_out
-
 
     def get_feature_vector(self, blocks=4):
         if not self.image_open.mode == 'RGB':
