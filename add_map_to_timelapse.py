@@ -14,117 +14,16 @@ Author: Steve Foga
 Created: 12 May 2018
 Python version: 2.7.12
 """
-import sys
 import os
 import glob
 import warnings
 import matplotlib.pyplot as plt
 from PIL import Image
 from collections import OrderedDict
-from lib.common import Common
+from lib import common, geotools
 
-
-def progress(count, total, suffix=''):
-    """
-    Display progress bar in command line
-
-    :param count: <int> current iteration
-    :param total: <int> total number of iterations
-    :param suffix: <str> text to be plotted next to bar (should be description of progress)
-    :return:
-    """
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[{0}] {1}{2} {3}\r'.format(bar, percents, '%', suffix))
-    sys.stdout.flush()  # As suggested by Rom Ruben
-
-
-def get_dd(crds):
-    """
-    Convert degrees+decimal minutes to decimal degrees
-
-    :param crds: <list> [degrees, minutes, decimal minutes]
-    :return: <float> decimal degrees
-    """
-    # combine minutes and decimal minutes to form single number
-    dec_min = crds[1] + float('.0' + '0'.zfill(len(str(crds[2])) - 2) + '1') * crds[2]
-
-    # conversion equation
-    if crds[0] < 0:
-        dec_deg = crds[0] - (dec_min / 60.)
-    else:
-        dec_deg = crds[0] + (dec_min / 60.)
-
-    return dec_deg
-
-
-def get_coords(exif_data):
-    """
-    Get coordinates from gopro exif data.
-
-    :param exif_data: <dict> dictionary of gps data
-    :return: <list> [longitude,latitude] in decimal degrees
-    """
-    # extract coordinates from exif data
-    lat = [exif_data[2][i][0] for i in range(len(exif_data[2]))]
-    if exif_data[1] == 'S':
-        lat[0] = lat[0] * -1
-
-    lng = [exif_data[4][i][0] for i in range(len(exif_data[4]))]
-    if exif_data[3] == 'W':
-        lng[0] = lng[0] * -1
-
-    # convert degrees + decimal minutes to decimal degrees
-    lat_dd = get_dd(lat)
-    long_dd = get_dd(lng)
-
-    return [lat_dd, long_dd]
-
-
-def calc_map_dims(x_size, y_size, mp_size, mp_dpi):
-    """
-    Calculate output map size.
-
-    :param x_size: <int or float> Image x dimension
-    :param y_size: <int or float> Image y dimension
-    :param mp_size: <int> Percent of image space of which the map will occupy
-    :param mp_dpi: <int> Map density, as dots per inch
-    :return: <list> [x_dimension, y_dimension]
-    """
-    if x_size <= 0:
-        raise Exception("x_size must be greater than 0; value supplied: {0}".format(x_size))
-    if y_size <= 0:
-        raise Exception("y_size must be greater than 0; value supplied: {0}".format(y_size))
-    if mp_size <= 0:
-        raise Exception("mp_size must be greater than 0; value supplied: {0}".format(mp_size))
-    if mp_dpi <= 0:
-        raise Exception("mp_dpi must be greater than 0; value supplied: {0}".format(mp_dpi))
-
-    img_y_scaled = y_size * (mp_size * 0.01)
-    img_x_scaled = x_size * (mp_size * 0.01)
-
-    map_y_dim = img_y_scaled / mp_dpi
-    map_x_dim = img_x_scaled / mp_dpi
-
-    return map_x_dim, map_y_dim
-
-
-def scale_map_to_img(map_dim, img_dim):
-    """
-    Set map position, relative to the base image
-    # TODO: fix this so plot offset works in any margin (only works in LR now)
-    :param map_dim: <int or float>
-    :param img_dim: <int or float>
-    :return: <int or float>
-    """
-    # using /1.6 to offset from the lower left edge
-    map_pos = int(round((map_dim * img_dim) / 1.6))
-
-    return map_pos
+## TODO: add logging module, use debug for coordinate conversion
+## example: image 756 jumps
 
 
 def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, map_line_width, map_alpha, map_point_size,
@@ -145,29 +44,32 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     for i in img_in:
 
         it += 1
-        progress(it, total, "coords extracted from exif")
+        common.progress(it, total, "coords extracted from exif")
 
-        io = Common.open_image(i)
-        info = io._getexif()
+        #io = Common.open_image(i)
+        #info = io._getexif()
+        image = common.ImageIO(i)
 
         #print(info)
 
         # write [lat, long] to dictonary key 'image.JPG'
         try:
-            img_coords[i] = get_coords(info[34853])
+            #img_coords[i] = geotools.get_coords(info[34853])
+            img_coords[i] = geotools.get_coords(image.image_exif[34853])
         except KeyError:
             warnings.warn("Skipping: Could not find coordinates for image {0}".format(i))
             continue
 
     # grab size of last image opened (assuming all images are same size; to be used for scaling map later)
-    img_y = io.size[1]
-    img_x = io.size[0]
+    #img_y = io.size[1]
+    #img_x = io.size[0]
+    img_x, img_y = image.get_size()
 
-    map_x_dim, map_y_dim = calc_map_dims(img_x, img_y, map_size, map_dpi)
+    map_x_dim, map_y_dim = geotools.calc_map_dims(img_x, img_y, map_size, map_dpi)
 
     # set map within target image
-    map_y_pos = scale_map_to_img(map_y, img_y)
-    map_x_pos = scale_map_to_img(map_x, img_x)
+    map_y_pos = geotools.scale_map_to_img(map_y, img_y)
+    map_x_pos = geotools.scale_map_to_img(map_x, img_x)
 
     # determine bounding box of all images
     lats = [lc[0] for lc in img_coords.values()]
@@ -186,7 +88,7 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
     for img_path, value in img_coords.items():
 
         it += 1
-        progress(it, total, "maps plotted")
+        common.progress(it, total, "maps plotted")
 
         '''
         # open image as plot
@@ -240,21 +142,25 @@ def main(src, breadcrumbs, keep_map, dryrun, map_size, map_dpi, map_x, map_y, ma
         plt.close('all')
 
         # open target image
-        base_img = Common.open_image(img_path)
-        map_img = Common.open_image(png_out)
+        #base_img = common.open_image(img_path)
+        #map_img = common.open_image(png_out)
+        base_img = common.ImageIO(img_path)
+        map_img = common.ImageIO(png_out)
 
         # overlay PNG on target image
-        base_img_rgba = base_img.convert("RGBA")
-        map_img_rgba = map_img.convert("RGBA")
-        base_img_rgba.paste(map_img_rgba, (map_x_pos, map_y_pos), map_img_rgba)
+        #base_img_rgba = base_img.convert("RGBA")
+        #map_img_rgba = map_img.convert("RGBA")
+        #base_img_rgba.paste(map_img_rgba, (map_x_pos, map_y_pos), map_img_rgba)
+        base_img_rgba = base_img.overlay(map_img, map_x_pos, map_y_pos)
 
         # save target image to new location
         img_out = os.path.splitext(img_path)[0] + "_map.JPG"
         if not dryrun:
             # convert RGBA to RGB w/ mask (otherwise JPG format will not work)
             # solution found at https://stackoverflow.com/a/9459208
-            base_img_jpg_out = Image.new("RGB", base_img_rgba.size, (255, 255, 255))
-            base_img_jpg_out.paste(base_img_rgba, mask=base_img_rgba.split()[3])
+            #base_img_jpg_out = Image.new("RGB", base_img_rgba.size, (255, 255, 255))
+            #base_img_jpg_out.paste(base_img_rgba, mask=base_img_rgba.split()[3])
+            base_img_jpg_out = base_img_rgba.rgba_to_rgb_mask()
 
             # write image to JPG file
             base_img_jpg_out.save(img_out)
