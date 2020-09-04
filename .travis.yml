@@ -3,21 +3,24 @@ language: python
 python:
   - 3.7
 
+notifications:
+  email: false
+
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   # Install in batch mode
-  - ./miniconda.sh -b -p $HOME/miniconda
-  - export PATH=$HOME/miniconda/bin:$PATH
+  - bash ./miniconda.sh -b -p $HOME/miniconda
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
 
 install:
-
   # Issues have been encountered with installing numpy and scipy on 
   # Travis CI e.g. https://gist.github.com/dan-blanchard/7045057.
   # Miniconda is recommended as the way to install these. See also:
   # http://conda.pydata.org/docs/travis.html
   # The following adopts approaches suggested in the above links.
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda create -q -n test python=$TRAVIS_PYTHON_VERSION
   - source activate test
   - conda install --yes numpy=$NUMPY scipy=$SCIPY matplotlib pip pytest PIL
   - pip install setuptools
