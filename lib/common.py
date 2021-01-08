@@ -10,6 +10,16 @@ Python version: 3.7.3
 """
 import sys
 import PIL.Image
+import logging
+
+
+logger = logging.getLogger("logger")
+logger.setLevel(logging.DEBUG)
+lsh = logging.StreamHandler()
+lsh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s %(levelname)s- %(message)s','%m-%d-%Y %H:%M:%S')
+lsh.setFormatter(formatter)
+logger.addHandler(lsh)
 
 
 def progress(count, total, suffix=''):
@@ -57,7 +67,7 @@ class ImageIO():
 
     def get_feature_vector(self, blocks=4):
         if not self.image_open.mode == 'RGB':
-            raise Exception("Image mode {0} not supported.".format(image.mode))
+            raise Exception("Image mode {0} not supported.".format(self.image_open.mode))
 
         feature = [0] * blocks * blocks * blocks
         pixel_count = 0
