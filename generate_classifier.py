@@ -20,13 +20,16 @@ import os
 import glob
 import json
 import time
-from lib import common
+import multiprocessing as mp
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import svm
 import pickle
 
+from lib import common
+
 
 logger = common.logger
+DEFAULT_MAX_CPUS = os.cpu_count()
 
 
 def calc_img_vector(img_path):
@@ -118,13 +121,14 @@ def write_vector_file(vec_path, data):
     logger.info("     ... done")
 
 
-def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
+def main(group_a, group_b, class_out, img_ext='.jpg', threads=1, dryrun=False):
     """
 
     :param group_a: <str> path to 'good' images OR json files
     :param group_b: <str> path to 'bad' images OR json files
     :param class_out: <str> path and filename of output file
     :param img_ext: <str> image extension, e.g., '.jpg', '.png' (ignored if group_a and group_b are .json)
+    :param threads: <int> number of threads to use for image vectorizatin process (default=1)
     :param dryrun: <bool> run code but do not save classifier
     :return:
     """
@@ -151,8 +155,23 @@ def main(group_a, group_b, class_out, img_ext='.jpg', dryrun=False):
 
     if ext_a != '.json' and ext_b != '.json':
         logger.info("Calculating image vectors ...")
-        vector_a = [calc_img_vector(i) for i in get_files(group_a, img_ext)]
-        vector_b = [calc_img_vector(i) for i in get_files(group_b, img_ext)]
+        ## TODO: thread this
+        if threads > 1:
+            def thread_image_vectorization(group, img_ext, thread_count):
+                pool = mp.Pool(processes=thread_count)
+                vector_out = []
+                try:
+                    results = [pool.apply_async(calc_img_vector, args=(i)) for i in get_files(group, img_ext)]
+                    vector_out = [p.get() for p in results]
+                except KeyboardInterrupt:
+                    pool.terminate()
+                    logger.info("pool terminated.")
+                return vector_out
+            vector_a = thread_image_vectorization(group=group_a, img_ext=img_ext, thread_count=threads)
+            vector_b = thread_image_vectorization(group=group_b, img_ext=img_ext, thread_count=threads)
+        else:
+            vector_a = [calc_img_vector(i) for i in get_files(group_a, img_ext)]
+            vector_b = [calc_img_vector(i) for i in get_files(group_b, img_ext)]
 
         # write vector files to disk
         if not dryrun:
@@ -184,12 +203,14 @@ if __name__ == "__main__":
     req_named.add_argument("--pos", help="Dir of positive/good images)", dest="group_a", required=True)
     req_named.add_argument("--neg", help="Dir of negative/bad images)", dest="group_b", required=True)
     req_named.add_argument("-o", help="Path and filename for output classification", dest="class_out", required=True)
-    req_named.add_argument("-e", help="Image extent (default=.jpg)", dest="img_ext", default='.jpg', required=False)
 
+    parser.add_argument("-e", help="Image extent (default=.jpg)", dest="img_ext", default='.jpg', required=False)
+    parser.add_argument("--threads", help="Number of processes to spawn for image vectorization (default={})"
+                        .format(DEFAULT_MAX_CPUS), default=DEFAULT_MAX_CPUS, type=int, required=False)
     parser.add_argument("--dryrun", help="Run script, but do not execute actions", action="store_true", required=False)
 
     arguments = parser.parse_args()
 
-    #print(arguments)
+    # print(arguments)
 
     main(**vars(arguments))
