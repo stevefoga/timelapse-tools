@@ -35,13 +35,46 @@ DEFAULT_MAX_CPUS = os.cpu_count()
 def calc_img_vector(img_path):
     """
 
-    :param img_path:
-    :return:
+    :param img_path: <str or list>
+    :return: <ImageIO object OR list of ImageIO objects>
     """
-    #return Common.process_image(Common.open_image(img_path))
-    logger.debug("     reading image {} ...".format(img_path))
-    image = common.ImageIO(img_path)
-    return image.get_feature_vector()
+    if type(img_path) == str:
+        img_path = [img_path]
+    image = []
+    for img in img_path:
+        logger.debug("     reading image {} ...".format(img))
+        image.append(common.ImageIO(img).get_feature_vector())
+
+    return image
+
+
+def batch_split(input_values, process_count):
+    """
+    chunk a list of items
+    :param input_values: <list>
+    :param process_count: <int>
+    :return: <list>
+    """
+    chunk_size = round(len(input_values) / float(process_count))
+    if chunk_size == 0:
+        chunk_size = 1
+    chunk_low = 0
+    chunk_high = chunk_size
+    chunk_out = {}
+    for part in range(0, process_count):
+        logger.debug("part: {} | low: {} | high: {}".format(part, chunk_low, chunk_high))
+        if part == process_count - 1:
+            # fix the index to the last value
+            values_to_write = input_values[chunk_low:len(input_values)]
+            if values_to_write:  # prevents empty values being written to keys, otherwise apply_async gets upset
+                chunk_out[part] = values_to_write
+        else:
+            values_to_write = input_values[chunk_low:chunk_high]
+            if values_to_write:
+                chunk_out[part] = values_to_write
+            chunk_low += chunk_size
+            chunk_high += chunk_size
+    return chunk_out
 
 
 def train_classifier(train_a, train_b, class_out):
@@ -121,6 +154,31 @@ def write_vector_file(vec_path, data):
     logger.info("     ... done")
 
 
+def thread_image_vectorization(group, img_ext, thread_count):
+    """
+
+    :param group: <str> path to input image(s)
+    :param img_ext: <str> image extension (e.g., '.jpg')
+    :param thread_count: <int>
+    :return: <list>
+    """
+    # get number of images for each process
+    input_files = get_files(group, img_ext)
+    batch_imgs = batch_split(input_files, process_count=thread_count)
+    logger.debug("batch_imgs: {}".format(batch_imgs))
+
+    # send batches to unique processes
+    pool = mp.Pool(processes=thread_count)
+    vector_out = []
+    try:
+        results = [pool.apply_async(calc_img_vector, args=(i,)) for i in batch_imgs.values()]
+        vector_out = [p.get() for p in results]
+    except KeyboardInterrupt:
+        pool.terminate()
+        logger.info("pool terminated.")
+    return vector_out[0]  # call index 0 to remove outer list
+
+
 def main(group_a, group_b, class_out, img_ext='.jpg', threads=1, dryrun=False):
     """
 
@@ -155,23 +213,8 @@ def main(group_a, group_b, class_out, img_ext='.jpg', threads=1, dryrun=False):
 
     if ext_a != '.json' and ext_b != '.json':
         logger.info("Calculating image vectors ...")
-        ## TODO: thread this
-        if threads > 1:
-            def thread_image_vectorization(group, img_ext, thread_count):
-                pool = mp.Pool(processes=thread_count)
-                vector_out = []
-                try:
-                    results = [pool.apply_async(calc_img_vector, args=(i)) for i in get_files(group, img_ext)]
-                    vector_out = [p.get() for p in results]
-                except KeyboardInterrupt:
-                    pool.terminate()
-                    logger.info("pool terminated.")
-                return vector_out
-            vector_a = thread_image_vectorization(group=group_a, img_ext=img_ext, thread_count=threads)
-            vector_b = thread_image_vectorization(group=group_b, img_ext=img_ext, thread_count=threads)
-        else:
-            vector_a = [calc_img_vector(i) for i in get_files(group_a, img_ext)]
-            vector_b = [calc_img_vector(i) for i in get_files(group_b, img_ext)]
+        vector_a = thread_image_vectorization(group=group_a, img_ext=img_ext, thread_count=threads)
+        vector_b = thread_image_vectorization(group=group_b, img_ext=img_ext, thread_count=threads)
 
         # write vector files to disk
         if not dryrun:
