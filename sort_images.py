@@ -16,18 +16,20 @@ from classify_images import classify
 from lib import common
 
 
+DEFAULT_MAX_CPUS = common.DEFAULT_MAX_CPUS
 logger = common.logger
 
 t0 = time.time()
 
 
-def main(img_path, img_ext, model, good_path, bad_path, test=False, dryrun=False):
+def main(img_path, img_ext, model, good_path, bad_path, threads=1, test=False, dryrun=False):
     """
     :param img_path: <str> path to dir containing image(s)
     :param img_ext: <str> image extent (e.g., '.jpg')
     :param model: <str> path to model file
     :param good_path: <str> path to output dir for good/matching image(s)
     :param bad_path: <str> path to output dir for bad/non-matching image(s)
+    :param threads: <int> number of threads to use for image classification process (default=1)
     :param test: <int> subset number of test images to use instead of the entire dataset
     :param dryrun: <bool> run code but do not move images
 
@@ -39,7 +41,7 @@ def main(img_path, img_ext, model, good_path, bad_path, test=False, dryrun=False
 
     # classify images
     logger.info("Classifying images ...")
-    results = classify(img_path, img_ext, clf, subset_count=test)
+    results = classify(img_path, img_ext, clf, threads=threads, subset_count=test)
 
     logger.info("Sorting each image by its classification ...")
     for result in results:
@@ -79,6 +81,8 @@ if __name__ == "__main__":
     req_named.add_argument("--neg", help="Output dir path for bad image(s)", dest="bad_path", required=True)
 
     parser.add_argument("-e", help="Image extension (e.g., .jpg)", default=".jpg", dest="img_ext")
+    parser.add_argument("--threads", help="Number of processes to spawn for image classification (default={})"
+                        .format(DEFAULT_MAX_CPUS), default=DEFAULT_MAX_CPUS, type=int, required=False)
     parser.add_argument("--test", help="Specify number of images on which to run model (instead of running on entire "
                                        "dataset)", type=int)
     parser.add_argument("--dryrun", help="Run script, but do not execute actions", action="store_true", required=False)
