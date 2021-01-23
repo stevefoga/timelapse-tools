@@ -28,8 +28,8 @@ import pickle
 from lib import common
 
 
+DEFAULT_MAX_CPUS = common.DEFAULT_MAX_CPUS
 logger = common.logger
-DEFAULT_MAX_CPUS = os.cpu_count()
 
 
 def calc_img_vector(img_path):
@@ -46,35 +46,6 @@ def calc_img_vector(img_path):
         image.append(common.ImageIO(img).get_feature_vector())
 
     return image
-
-
-def batch_split(input_values, process_count):
-    """
-    chunk a list of items
-    :param input_values: <list>
-    :param process_count: <int>
-    :return: <list>
-    """
-    chunk_size = round(len(input_values) / float(process_count))
-    if chunk_size == 0:
-        chunk_size = 1
-    chunk_low = 0
-    chunk_high = chunk_size
-    chunk_out = {}
-    for part in range(0, process_count):
-        logger.debug("part: {} | low: {} | high: {}".format(part, chunk_low, chunk_high))
-        if part == process_count - 1:
-            # fix the index to the last value
-            values_to_write = input_values[chunk_low:len(input_values)]
-            if values_to_write:  # prevents empty values being written to keys, otherwise apply_async gets upset
-                chunk_out[part] = values_to_write
-        else:
-            values_to_write = input_values[chunk_low:chunk_high]
-            if values_to_write:
-                chunk_out[part] = values_to_write
-            chunk_low += chunk_size
-            chunk_high += chunk_size
-    return chunk_out
 
 
 def train_classifier(train_a, train_b, class_out):
@@ -164,7 +135,7 @@ def thread_image_vectorization(group, img_ext, thread_count):
     """
     # get number of images for each process
     input_files = get_files(group, img_ext)
-    batch_imgs = batch_split(input_files, process_count=thread_count)
+    batch_imgs = common.batch_split(input_files, process_count=thread_count)
     logger.debug("batch_imgs: {}".format(batch_imgs))
 
     # send batches to unique processes
@@ -186,7 +157,7 @@ def main(group_a, group_b, class_out, img_ext='.jpg', threads=1, dryrun=False):
     :param group_b: <str> path to 'bad' images OR json files
     :param class_out: <str> path and filename of output file
     :param img_ext: <str> image extension, e.g., '.jpg', '.png' (ignored if group_a and group_b are .json)
-    :param threads: <int> number of threads to use for image vectorizatin process (default=1)
+    :param threads: <int> number of threads to use for image vectorization process (default=1)
     :param dryrun: <bool> run code but do not save classifier
     :return:
     """
