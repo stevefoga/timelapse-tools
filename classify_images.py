@@ -22,7 +22,7 @@ logger = common.logger
 def apply_classifier(image, classifier):
     """
 
-    :param image: <str>
+    :param image: <list>
     :param classifier:
     :return:
     """
@@ -31,13 +31,19 @@ def apply_classifier(image, classifier):
     img_open = common.ImageIO(image)
 
     # open image as vector
-    img_vec = img_open.get_feature_vector()
+    img_and_class = []
+    for img in image:
+        img_vec = img_open.get_feature_vector()
 
-    # reshape vector (sklearn >= 0.19 requires this)
-    np_vec = np.array(img_vec).reshape((len(img_vec), 1)).reshape(1, -1)
+        # reshape vector (sklearn >= 0.19 requires this)
+        np_vec = np.array(img_vec).reshape((len(img_vec), 1)).reshape(1, -1)
 
-    # run classifier to determine if image is in group A (1) or group B (0)
-    return zip(image, classifier.predict(np_vec))
+        # run classifier to determine if image is in group A (1) or group B (0)
+        img_class = classifier.predict(np_vec)
+
+        img_and_class.append(zip(img, img_class))
+
+    return img_and_class
 
 
 def classify(img_in, img_ext, model, threads=1, subset_count=False):
