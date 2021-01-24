@@ -10,6 +10,7 @@ Python version: 3.8.2
 """
 import os
 import glob
+from itertools import chain
 import numpy as np
 import multiprocessing as mp
 
@@ -94,4 +95,9 @@ def classify(img_in, img_ext, model, threads=1, subset_count=False):
         logger.info("pool terminated.")
 
     logger.debug("classification_out[0][0]: {}".format(classification_out[0][0]))
-    return classification_out[0]  # call index 0 to remove outer list
+    # un-nest lists
+    classication_unnested = list(chain(*classification_out))
+    logger.debug("len(classification_unnested): {}".format(len(classication_unnested)))
+    if classication_unnested:
+        logger.debug("classification_unnested[0]: {}".format(classication_unnested[0]))
+    return classication_unnested
