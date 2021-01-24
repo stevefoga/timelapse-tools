@@ -24,7 +24,7 @@ def reduce_frames(src, dst, keep_factor, file_ext, transfer_method, dryrun):
 	dir_with_pattern = os.path.join(src, "*{}".format(file_ext))
 	files_in = sorted(glob.glob(dir_with_pattern))
 	if not files_in:
-		print("no files found using wildcard path {}".format(dir_with_pattern))
+		print("ERROR: no files found using wildcard path {}".format(dir_with_pattern))
 		sys.exit(1)
 	it = 0
 	for f in files_in:
