@@ -25,5 +25,10 @@ I have written an example of how to use these tools for filtering unlit images c
 - sklearn
 - pillow (PIL)
 
+Conda one-liner to create environment:
+```
+create --yes --name timelapse-tools -c conda-forge python=3 numpy scipy scikit-learn pillow
+```  
+
 ## Resources
 I credit this work in part to this blog post: http://www.ippatsuman.com/2014/08/13/day-and-night-an-image-classifier-with-scikit-learn/
