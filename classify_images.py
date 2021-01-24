@@ -26,13 +26,12 @@ def apply_classifier(image, classifier):
     :param classifier:
     :return:
     """
-    logger.debug("   classifying {} ...".format(image))
-    # read target image(s)
-    img_open = common.ImageIO(image)
-
-    # open image as vector
     img_and_class = []
     for img in image:
+        logger.debug("   classifying {} ...".format(img))
+        # read target image(s)
+        img_open = common.ImageIO(img)
+
         img_vec = img_open.get_feature_vector()
 
         # reshape vector (sklearn >= 0.19 requires this)
@@ -41,7 +40,7 @@ def apply_classifier(image, classifier):
         # run classifier to determine if image is in group A (1) or group B (0)
         img_class = classifier.predict(np_vec)
 
-        img_and_class.append(zip(img, img_class))
+        img_and_class.append((img, img_class))
 
     return img_and_class
 
@@ -96,29 +95,3 @@ def classify(img_in, img_ext, model, threads=1, subset_count=False):
 
     logger.debug("classification_out[0][0]: {}".format(classification_out[0][0]))
     return classification_out[0]  # call index 0 to remove outer list
-
-    """
-    for i in img:
-        # read target image(s)
-        img_open = common.ImageIO(i)
-        #img_open = Common.open_image(i)
-
-        # open image as vector
-        img_vec = img_open.get_feature_vector()
-
-        # reshape vector (sklearn >= 0.19 requires this)
-        np_vec = np.array(img_vec).reshape((len(img_vec), 1)).reshape(1, -1)
-
-        # run classifier to determine if image is in group A (1) or group b (0)
-        out = classifier.predict(np_vec)
-
-        if type(out) is not np.ndarray:
-            raise Exception("No result returned for image {0}".format(i))
-        else:
-            output.append(out[0])
-
-        counter += 1
-        common.progress(counter, total_img_count, "images classified")
-
-    return zip(img, output)
-    """
