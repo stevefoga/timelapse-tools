@@ -8,8 +8,21 @@ Created:    02 Nov 2017
 
 Python version: 3.7.3
 """
+import os
 import sys
 import PIL.Image
+import logging
+
+
+DEFAULT_MAX_CPUS = os.cpu_count()
+
+logger = logging.getLogger("logger")
+logger.setLevel(logging.DEBUG)
+lsh = logging.StreamHandler()
+lsh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s %(levelname)s- %(message)s','%m-%d-%Y %H:%M:%S')
+lsh.setFormatter(formatter)
+logger.addHandler(lsh)
 
 
 def progress(count, total, suffix=''):
@@ -29,6 +42,35 @@ def progress(count, total, suffix=''):
 
     sys.stdout.write('[{0}] {1}{2} {3}\r'.format(bar, percents, '%', suffix))
     sys.stdout.flush()  # As suggested by Rom Ruben
+
+
+def batch_split(input_values, process_count):
+    """
+    chunk a list of items
+    :param input_values: <list>
+    :param process_count: <int>
+    :return: <list>
+    """
+    chunk_size = round(len(input_values) / float(process_count))
+    if chunk_size == 0:
+        chunk_size = 1
+    chunk_low = 0
+    chunk_high = chunk_size
+    chunk_out = {}
+    for part in range(0, process_count):
+        logger.debug("part: {} | low: {} | high: {}".format(part, chunk_low, chunk_high))
+        if part == process_count - 1:
+            # fix the index to the last value
+            values_to_write = input_values[chunk_low:len(input_values)]
+            if values_to_write:  # prevents empty values being written to keys, otherwise apply_async gets upset
+                chunk_out[part] = values_to_write
+        else:
+            values_to_write = input_values[chunk_low:chunk_high]
+            if values_to_write:
+                chunk_out[part] = values_to_write
+            chunk_low += chunk_size
+            chunk_high += chunk_size
+    return chunk_out
 
 
 class ImageIO():
@@ -57,7 +99,7 @@ class ImageIO():
 
     def get_feature_vector(self, blocks=4):
         if not self.image_open.mode == 'RGB':
-            raise Exception("Image mode {0} not supported.".format(image.mode))
+            raise Exception("Image mode {0} not supported.".format(self.image_open.mode))
 
         feature = [0] * blocks * blocks * blocks
         pixel_count = 0
