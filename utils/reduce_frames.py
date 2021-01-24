@@ -15,6 +15,9 @@ def do_transfer(fn_in, fn_out, transfer_method):
 		os.link(fn_in, fn_out)
 	elif transfer_method == "copy":
 		copyfile(fn_in, fn_out)
+	else:
+		print("ERROR: transfer method {} not supported!".format(transfer_method))
+		sys.exit(1)
 
 
 def reduce_frames(src, dst, keep_factor, file_ext, transfer_method, dryrun):
